@@ -4,12 +4,14 @@
   "version": "1.0.0",
   "scripts": {
     "build": "node_modules/near-shell/near build",
+    "deploy": "gh-pages -d src",
     "test": "jest test --env=./local_test_environment.js"
   },
   "devDependencies": {
     "assemblyscript": "github:nearprotocol/assemblyscript.git",
-    "gulp": "^3",
     "assemblyscript-json": "github:nearprotocol/assemblyscript-json",
+    "gh-pages": "^2.0.1",
+    "gulp": "^3",
     "jest": "^22.4.4",
     "jest-environment-node": "^24.5.0",
     "near-runtime-ts": "github:nearprotocol/near-runtime-ts",
