@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node_modules/near-shell/near build",
     "deploy": "gh-pages -d src",
-    "test": "jest test --env=./local_test_environment.js"
+    "test": "npm run build && jest test --env=near-shell/local_test_environment",
+    "test-on-devnet": "npm run build && jest test --env=near-shell/devnet_test_environment"
   },
   "devDependencies": {
     "assemblyscript": "github:nearprotocol/assemblyscript.git",
