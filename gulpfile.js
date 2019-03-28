@@ -1,13 +1,42 @@
 const gulp = require("gulp");
 
+gulp.task("build:model", callback => {
+  generateBindings("model.ts", "../out/model.near.ts", callback);
+});
+
+gulp.task("build:bindings", ["build:model"], callback => {
+  generateBindings("main.ts", "../out/main.near.ts", callback);
+});
+
+gulp.task("build", ["build:bindings"], callback => {
+  compile("../out/main.near.ts", "../out/main.wasm", callback);
+});
+
+gulp.task("default", ["build"]);
+
+// TODO: Extract all following boilerplate into library
+
 let runningInStudio = false;
+
+// This task is not required when running the project locally. Its purpose is to set up the
+// AssemblyScript compiler when a new project has been loaded in WebAssembly Studio.
+gulp.task("project:load", () => {
+  runningInStudio = true;
+  const utils = require("@wasm/studio-utils");
+  utils.eval(utils.project.getFile("setup.js").getData(), {
+    logLn,
+    project,
+    monaco,
+    fileTypeForExtension,
+  });
+});
 
 function generateBindings(inputFile, outputFile, callback) {
   const asc = getAsc();
   asc.main([
     inputFile,
     "--baseDir", "assembly",
-    "--nearFile", outputFile, 
+    "--nearFile", outputFile,
     "--measure"
   ], callback);
 }
@@ -23,42 +52,19 @@ function compile(inputFile, outputFile, callback) {
   ], callback);
 }
 
-gulp.task("build:model", callback => {
-  generateBindings("model.ts", "../out/model.near.ts", callback);
-});
-
-gulp.task("build:bindings", ["build:model"], callback => {
-  generateBindings("main.ts", "../out/main.near.ts", callback);
-});
-
-gulp.task("build", ["build:bindings"], callback => {
-  compile("../out/main.near.ts", "../out/main.wasm", callback);
-});
-
-gulp.task("default", ["build"]);
-
-// This task is not required when running the project locally. Its purpose is to set up the
-// AssemblyScript compiler when a new project has been loaded in WebAssembly Studio.
-gulp.task("project:load", () => {
-  runningInStudio = true;
-  const utils = require("@wasm/studio-utils");
-  utils.eval(utils.project.getFile("setup.js").getData(), {
-    logLn,
-    project,
-    monaco,
-    fileTypeForExtension,
-  });
-});
-
 let asc;
 function getAsc() {
   if (asc) {
     return asc;
   }
 
+  asc = require("assemblyscript/bin/asc");
+  if (runningInStudio) {
+    return asc;
+  }
+
   const fs = require("fs");
   const pathModule = require("path");
-  asc = require("assemblyscript/bin/asc");
   asc.main = (main => (args, options, fn) => {
     if (typeof options === "function") {
       fn = options;
