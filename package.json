@@ -1,7 +1,7 @@
 {
-  "name": "@wasm/wallet_example_ts",
+  "name": "near-chess",
   "description": "",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "scripts": {
     "build": "gulp",
     "deploy:pages": "gh-pages -d src",
@@ -20,8 +20,8 @@
     "near-shell": "github:nearprotocol/near-shell"
   },
   "wasmStudio": {
-    "name": "Example of NEAR Wallet integration",
-    "description": "This example demonstrates how to integrate your application with NEAR Wallet. The contract is quite simple. It can store the account_id of last sender and return it. It also shows how you can debug contracts using logs.",
+    "name": "NEAR Chess",
+    "description": "Shows example of how to implement on-chain chess game and deploy to GitHub pages",
     "icon": "typescript-lang-file-icon"
   },
   "dependencies": {}
