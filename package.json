@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "build": "gulp",
-    "deploy": "npm run build && near deploy && gh-pages -d src",
+    "deploy:pages": "gh-pages -d src",
+    "deploy": "npm run build && near deploy --account_id=near-chess-devnet --node_url=https://studio.nearprotocol.com/devnet && npm run deploy:pages",
     "test": "npm run build && jest test --env=near-shell/local_test_environment",
     "test-on-devnet": "npm run build && jest test --env=near-shell/devnet_test_environment"
   },
