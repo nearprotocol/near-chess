@@ -3,8 +3,8 @@
   "description": "",
   "version": "1.0.0",
   "scripts": {
-    "build": "node_modules/near-shell/near build",
-    "deploy": "gh-pages -d src",
+    "build": "gulp",
+    "deploy": "npm run build && near deploy && gh-pages -d src",
     "test": "npm run build && jest test --env=near-shell/local_test_environment",
     "test-on-devnet": "npm run build && jest test --env=near-shell/devnet_test_environment"
   },

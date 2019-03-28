@@ -1,7 +1,9 @@
 const gulp = require("gulp");
 
+let runningInStudio = false;
+
 function generateBindings(inputFile, outputFile, callback) {
-  const asc = require("assemblyscript/bin/asc");
+  const asc = getAsc();
   asc.main([
     inputFile,
     "--baseDir", "assembly",
@@ -11,7 +13,7 @@ function generateBindings(inputFile, outputFile, callback) {
 }
 
 function compile(inputFile, outputFile, callback) {
-  const asc = require("assemblyscript/bin/asc");
+  const asc = getAsc();
   asc.main([
     inputFile,
     "--baseDir", "assembly",
@@ -38,6 +40,7 @@ gulp.task("default", ["build"]);
 // This task is not required when running the project locally. Its purpose is to set up the
 // AssemblyScript compiler when a new project has been loaded in WebAssembly Studio.
 gulp.task("project:load", () => {
+  runningInStudio = true;
   const utils = require("@wasm/studio-utils");
   utils.eval(utils.project.getFile("setup.js").getData(), {
     logLn,
@@ -46,3 +49,40 @@ gulp.task("project:load", () => {
     fileTypeForExtension,
   });
 });
+
+let asc;
+function getAsc() {
+  if (asc) {
+    return asc;
+  }
+
+  const fs = require("fs");
+  const pathModule = require("path");
+  asc = require("assemblyscript/bin/asc");
+  asc.main = (main => (args, options, fn) => {
+    if (typeof options === "function") {
+      fn = options;
+      options = undefined;
+    }
+
+    return main(args, options || {
+      stdout: process.stdout,
+      stderr: process.stderr,
+      readFile: (filename, baseDir) => {
+        let path = pathModule.join(baseDir, filename);
+        if (path.startsWith("out/") && path.indexOf(".near.ts") == -1) {
+          path = path.replace(/^out/, baseDir );
+        } else if (path.startsWith(baseDir) && path.indexOf(".near.ts") != -1) {
+          path = path.replace(new RegExp("^" + baseDir), "out");
+        }
+        return fs.readFileSync(path).toString("utf8");
+      },
+      writeFile: (filename, contents) => {
+        const name = filename.startsWith("../") ? filename.substring(3) : filename;
+        fs.writeFileSync(name, contents);
+      },
+      listFiles: () => []
+    }, fn);
+  })(asc.main);
+  return asc;
+}
