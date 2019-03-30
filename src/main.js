@@ -30,9 +30,9 @@ async function doInitContract() {
   window.contract = await near.loadContract(config.contractName, {
     // NOTE: This configuration only needed while NEAR is still in development
     // View methods are read only. They don't modify the state, but usually return some value. 
-    viewMethods: ["getCurrentGame", "getGame"],
+    viewMethods: ["getCurrentGame", "getGame", "getRecentGames"],
     // Change methods can modify the state. But you don't receive the returned value when called.
-    changeMethods: ["createOrJoinGame", "makeMove"],
+    changeMethods: ["createOrJoinGame", "makeMove", "giveUpCurrentGame"],
     // Sender is the account ID to initialize transactions.
     sender: window.accountId,
   });
@@ -80,6 +80,23 @@ function signedInFlow() {
     newGame().catch(console.error); 
   });
 
+  document.querySelector('.give-up').addEventListener('click', () => {
+    giveUp().catch(console.error);
+  });
+
+  document.querySelector('.get-recent-games').addEventListener('click', () => {
+    loadRecentGames().catch(console.error);
+  });
+
+  document.querySelector('.spectate').addEventListener('click', () => {
+    let options = document.getElementById("recent-games").options;
+    if (options.selectedIndex >= 0) {
+      let s = options[options.selectedIndex].text;
+      gameId = s.substr(0, s.indexOf(":"));
+      loadGame();
+    }
+  });
+
   document.getElementById('sign-out-button').addEventListener('click', () => {
     walletAccount.signOut();
     // Forcing redirect.
@@ -87,37 +104,63 @@ function signedInFlow() {
   });
 
   loadGame().catch(console.error);
+  loadRecentGames().catch(console.error);
+
+}
+
+async function loadRecentGames() {
+  let recentGames = await window.contract.getRecentGames();
+  let list = document.getElementById("recent-games");
+  list.options.length = 0;
+  for (let i = 0; i < recentGames.length; i++) {
+    let gameWithId = recentGames[i];
+    console.log(gameWithId);
+    let option = document.createElement("option");
+    option.text = gameWithId.id + ": " + gameWithId.game.player1 + " vs " + gameWithId.game.player2;
+    list.add(option);
+  }
 }
 
 let serverGame;
-let gameId;
+let gameId = 0;
 let playerSide;
 async function loadGame() {
-  gameId = await window.contract.getCurrentGame({player: window.accountId});
+  if (gameId == 0) {
+    gameId = await window.contract.getCurrentGame({player: window.accountId});
+  }
+  if (gameId == 0) {
+    return;
+  }
   console.log("gameId", gameId);
   serverGame = await window.contract.getGame({gameId});
   console.log("game", serverGame);
-  updateServerStatus();
-
   if (serverGame.player1 == window.accountId) {
     playerSide = "w";
   }
   if (serverGame.player2 == window.accountId) {
     playerSide = "b";
   }
+  updateServerStatus();
 
   if (game.fen() != serverGame.fen) {
     game.load(serverGame.fen);
     updateBoard();
   }
 
-  if (game.turn() != playerSide) {
+  if ((game.turn() != playerSide || !serverGame.player2) && serverGame.outcome == null) {
     setTimeout(() => loadGame().catch(console.error), 3000);
   }
 }
 
 async function newGame() {
   await window.contract.createOrJoinGame();
+  loadRecentGames().catch(console.error);
+  gameId = 0;
+  await loadGame();
+}
+
+async function giveUp() {
+  await window.contract.giveUpCurrentGame();
   await loadGame();
 }
 
@@ -129,12 +172,16 @@ let game = new Chess();
 var onDragStart = function(source, piece, position, orientation) {
   if (game.game_over() === true ||
       (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-      (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+      (game.turn() === 'b' && piece.search(/^w/) !== -1) ||
+      !playerSide || playerSide != game.turn()) {
     return false;
   }
 };
 
 var onDrop = function(source, target) {
+  if (!serverGame || !serverGame.player2 || serverGame.outcome != null) {
+    return "snapback";
+  }
   // see if the move is legal
   var move = game.move({
     from: source,
@@ -198,9 +245,18 @@ function updateStatus() {
 function getServerStatus() {
   if (!serverGame || !serverGame.player2) {
     return 'Waiting for player to join...';
-  } 
-  
-  return `Playing with ${serverGame.player2}`;
+  }
+  if (serverGame.outcome != null) {
+    return serverGame.outcome;
+  }
+  if (!(playerSide == "w" || playerSide == "b")) {
+    return `Watching ${serverGame.player1} vs ${serverGame.player2}`;
+  }
+  if (playerSide == "w") {
+    return `Playing as white against ${serverGame.player2}`;
+  } else {
+    return `Playing as black against ${serverGame.player1}`;
+  }
 }
 
 function updateServerStatus() {

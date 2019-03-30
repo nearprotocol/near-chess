@@ -3,10 +3,37 @@ export { memory };
 
 import { context, storage, near } from "./near";
 import { Game } from "./model.near";
+import {GameWithId} from "./model";
 
 // --- contract code goes below
 
+export function getRecentGames(): Array<GameWithId> {
+  let lastId = storage.getU64('lastId');
+  let games = new Array<GameWithId>();
+  for (let id = lastId; id > lastId - 10 && id > 0; --id) {
+    let game = new GameWithId();
+    game.id = id;
+    game.game = getGame(id);
+    games.push(game);
+  }
+  return games;
+}
+
+export function giveUpCurrentGame(): void {
+  let gameId = getCurrentGame(context.sender);
+  if (gameId == 0) {
+    return;
+  }
+  let game = getGame(gameId);
+  if (game.outcome != null || game.player2 == null) {
+    return;
+  }
+  game.outcome = "Player " + context.sender + " gave up";
+  storage.setBytes(getGameKey(gameId), game.encode());
+}
+
 export function createOrJoinGame(): void {
+  giveUpCurrentGame();
   let lastId = storage.getU64('lastId');
   let gameKey: string;
   let game: Game;
@@ -16,6 +43,9 @@ export function createOrJoinGame(): void {
     if (game.player2) {
       game = null;
     } else {
+      if (game.player1 == context.sender) {
+        return;
+      }
       game.player2 = context.sender;
     }
   }
@@ -43,6 +73,7 @@ export function getGame(gameId: u64): Game {
 export function makeMove(gameId: u64, fen: string): void {
   let gameKey = getGameKey(gameId);
   let game = Game.decode(storage.getBytes(gameKey));
+  assert(game.outcome == null, "Game over");
   let turn = getCurrentTurn(game.fen);
   let nextTurn = getCurrentTurn(fen);
   let validTurn =

@@ -72,6 +72,7 @@ function getAsc() {
       stdout: process.stdout,
       stderr: process.stderr,
       readFile: (filename, baseDir) => {
+        baseDir = pathModule.relative(process.cwd(), baseDir);
         let path = pathModule.join(baseDir, filename);
         if (path.startsWith("out/") && path.indexOf(".near.ts") == -1) {
           path = path.replace(/^out/, baseDir );
