@@ -10,7 +10,7 @@ import {GameWithId} from "./model";
 export function getRecentGames(): Array<GameWithId> {
   let lastId = storage.getU64('lastId');
   let games = new Array<GameWithId>();
-  for (let id = lastId; id > lastId - 10 && id > 0; --id) {
+  for (let id = lastId; id + 10 > lastId && id > 0; --id) {
     let game = new GameWithId();
     game.id = id;
     game.game = getGame(id);
