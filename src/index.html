@@ -41,27 +41,34 @@
     <div id="signed-in-flow" class="d-none">
       <div class="row">        
         <div class="col">
-          <h1 class="status"></h1>
-          <h4 class="server-status"><h4>
+          <div class="row">        
+            <div class="col">
+              <h1 class="status"></h1>
+              <h4 class="server-status"><h4>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+                <div id="board" style="width: 512px;"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="game-actions col">
+              <button class="new-game btn btn-success">New Game</button>
+              <button class="give-up btn btn-danger">Give Up</button>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="row">
         <div class="col">
-            <div id="board" style="width: 512px;"></div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="game-actions col">
-          <button class="new-game btn btn-success">New Game</button>
-          <button class="give-up btn btn-danger">Give Up</button>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
+          <h3>Recent games</h3>
           <select id="recent-games" size="10" title="recent games">
           </select>
-          <button class="get-recent-games btn btn-success">Refresh games</button>
-          <button class="spectate btn btn-success">Go to game</button>
+          <div class="row">
+            <div class="col">
+              <button class="get-recent-games btn btn-success">Refresh games</button>
+              <button class="spectate btn btn-success">Go to game</button>
+            </div>
+          </div>
         </div>
       </div>
     </div> 
