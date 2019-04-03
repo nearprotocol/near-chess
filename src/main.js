@@ -53,10 +53,10 @@ async function doWork() {
 
 // Function that initializes the signIn button using WalletAccount 
 function signedOutFlow() {
-  // Displaying the signed out flow container.
-  document.getElementById('signed-out-flow').classList.remove('d-none');
+  // Displaying the signed out flow elements.
+  $('.signed-out-flow').removeClass('d-none');
   // Adding an event to a sing-in button.
-  document.getElementById('sign-in-button').addEventListener('click', () => {
+  $('#sign-in-button').click(() => {
     window.walletAccount.requestSignIn(
       // The contract name that would be authorized to be called by the user's account.
       window.config.contractName,
@@ -70,8 +70,8 @@ function signedOutFlow() {
 
 // Main function for the signed-in flow (already authorized by the wallet).
 function signedInFlow() {
-  // Displaying the signed in flow container.
-  document.getElementById('signed-in-flow').classList.remove('d-none');
+  // Displaying the signed in flow elements.
+  $('.signed-in-flow').removeClass('d-none');
 
   // Displaying current account name.
   document.getElementById('account-id').innerText = window.accountId;

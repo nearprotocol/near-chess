@@ -33,19 +33,23 @@
           <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
         </li>
       </ul>
-      <form class="form-inline my-2 my-lg-0">
+      <form class="signed-in-flow login-info d-none form-inline my-2 my-lg-0">
         <div class="mr-sm-2">Hi, <b id="account-id"></b>!</div>
         <button id="sign-out-button" class="btn btn-outline-danger my-2 my-sm-0">Sign-out</button>
       </form>
     </div>
   </nav>
   <div class="container">
-    <div id="signed-out-flow" class="d-none">
+    <div class="signed-out-flow d-none">
       <div class="row">
-        <button id="sign-in-button" class="btn btn-primary btn-lg">Sign-in with NEAR</button>
+        <div class="col">
+          <h2>Show us your moves</h2>
+          <p>Pease sign-in to start playing. Don't worry – it's just few clicks in a browser, you don't have to install anything.</p>
+          <button id="sign-in-button" class="btn btn-primary btn-lg">Sign-in with NEAR</button>
+        </div>
       </div>
     </div> 
-    <div id="signed-in-flow" class="d-none">
+    <div class="signed-in-flow d-none">
       <div class="row">        
         <div class="col">
           <div class="row">        
