@@ -5,6 +5,6 @@ const config = {
     contractName: 'near-chess-devnet'
 };
 
-if (!Cookies.getJSON('fiddleConfig').nearPages) {
+if (!Cookies.getJSON('fiddleConfig') || !Cookies.getJSON('fiddleConfig').nearPages) {
     Cookies.set('fiddleConfig', config);
 }
