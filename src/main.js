@@ -137,6 +137,7 @@ async function loadGame(gameId) {
   console.log("currentGameId", currentGameId);
   serverGame = await window.contract.getGame({gameId: currentGameId});
   console.log("game", serverGame);
+  playerSide = null;
   if (serverGame.player1 == window.accountId) {
     playerSide = "w";
   }
