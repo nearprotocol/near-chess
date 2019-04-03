@@ -88,15 +88,6 @@ function signedInFlow() {
     loadRecentGames().catch(console.error);
   });
 
-  document.querySelector('.spectate').addEventListener('click', () => {
-    let options = document.getElementById("recent-games").options;
-    if (options.selectedIndex >= 0) {
-      let s = options[options.selectedIndex].text;
-      gameId = s.substr(0, s.indexOf(":"));
-      loadGame();
-    }
-  });
-
   document.getElementById('sign-out-button').addEventListener('click', () => {
     walletAccount.signOut();
     // Forcing redirect.
@@ -110,29 +101,41 @@ function signedInFlow() {
 
 async function loadRecentGames() {
   let recentGames = await window.contract.getRecentGames();
-  let list = document.getElementById("recent-games");
-  list.options.length = 0;
-  for (let i = 0; i < recentGames.length; i++) {
-    let gameWithId = recentGames[i];
-    console.log(gameWithId);
-    let option = document.createElement("option");
-    option.text = gameWithId.id + ": " + gameWithId.game.player1 + " vs " + gameWithId.game.player2;
-    list.add(option);
-  }
+  $("#recent-games").empty();
+  recentGames.forEach(game => {
+    let gameEl = $(`<a href="javascript:loadGame('${game.id}')" class="link-unstyled"><div class="small-game row">
+        <div class="board col-sm-5"></div>
+        <div class="game-info col-sm">
+          <h4 class="player-top">${game.game.player1}</h4>
+          <h4 class="player-bottom">${game.game.player2 || "Waiting for player to join..."}</h4>
+        </div>
+    </div></a>`);
+    $("#recent-games").append(gameEl);
+    let board = ChessBoard(gameEl.find(".board")[0], {
+      pieceTheme: 'http://chessboardjs.com/img/chesspieces/alpha/{piece}.png',
+      showNotation: false
+    });
+    board.position(game.game.fen, false);
+    // TODO: Is this detached when element removed?
+    $(window).resize(board.resize);
+  });
 }
 
 let serverGame;
-let gameId = 0;
+let currentGameId;
 let playerSide;
-async function loadGame() {
-  if (gameId == 0) {
-    gameId = await window.contract.getCurrentGame({player: window.accountId});
+async function loadGame(gameId) {
+  if (gameId) {
+    currentGameId = gameId;
+  } else if (!currentGameId) {
+    currentGameId = await window.contract.getCurrentGame({player: window.accountId});
   }
-  if (gameId == 0) {
+  if (!currentGameId) {
     return;
   }
-  console.log("gameId", gameId);
-  serverGame = await window.contract.getGame({gameId});
+
+  console.log("currentGameId", currentGameId);
+  serverGame = await window.contract.getGame({gameId: currentGameId});
   console.log("game", serverGame);
   if (serverGame.player1 == window.accountId) {
     playerSide = "w";
@@ -155,7 +158,7 @@ async function loadGame() {
 async function newGame() {
   await window.contract.createOrJoinGame();
   loadRecentGames().catch(console.error);
-  gameId = 0;
+  currentGameId = 0;
   await loadGame();
 }
 
@@ -195,7 +198,7 @@ var onDrop = function(source, target) {
   updateStatus();
 
   // Make move on chain
-  window.contract.makeMove({gameId, fen: game.fen()}).finally(loadGame);
+  window.contract.makeMove({gameId: currentGameId, fen: game.fen()}).finally(loadGame);
 };
 
 // update the board position after the piece snap 

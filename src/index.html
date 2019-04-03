@@ -11,6 +11,13 @@
     .game-actions {
       margin-top: 1em;
     }
+    .small-game {
+      margin-bottom: 1em;
+    }
+    .link-unstyled, .link-unstyled:link, .link-unstyled:hover {
+      color: inherit;
+      text-decoration: inherit;
+    }
   </style>
 </head>
 <body>
@@ -49,7 +56,7 @@
           </div>
           <div class="row">
             <div class="col">
-                <div id="board" style="width: 512px;"></div>
+                <div id="board" style="width: 510px"></div>
             </div>
           </div>
           <div class="row">
@@ -61,12 +68,11 @@
         </div>
         <div class="col">
           <h3>Recent games</h3>
-          <select id="recent-games" size="10" title="recent games">
-          </select>
+          <div id="recent-games">
+          </div>
           <div class="row">
             <div class="col">
               <button class="get-recent-games btn btn-success">Refresh games</button>
-              <button class="spectate btn btn-success">Go to game</button>
             </div>
           </div>
         </div>
