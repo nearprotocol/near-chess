@@ -170,6 +170,7 @@ async function giveUp() {
 
 let board;
 let game = new Chess();
+game.clear();
 
 // do not pick up pieces if the game is over
 // only pick up pieces for the side to move
@@ -242,6 +243,7 @@ function getStatusText() {
 } 
  
 function updateStatus() {
+  $('.status').removeClass('d-none');
   $('.status').text(getStatusText());
   updateServerStatus();
 }
@@ -264,13 +266,13 @@ function getServerStatus() {
 }
 
 function updateServerStatus() {
+  $('.server-status').removeClass('d-none');
   $('.server-status').html(getServerStatus());
 }
 
 var cfg = {
   pieceTheme: 'http://chessboardjs.com/img/chesspieces/alpha/{piece}.png',
   draggable: true,
-  position: 'start',
   onDragStart: onDragStart,
   onDrop: onDrop,
   onSnapEnd: onSnapEnd
