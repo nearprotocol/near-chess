@@ -242,6 +242,7 @@ function getStatusText() {
 } 
  
 function updateStatus() {
+  $('.status').removeClass('d-none');
   $('.status').text(getStatusText());
   updateServerStatus();
 }
@@ -264,6 +265,7 @@ function getServerStatus() {
 }
 
 function updateServerStatus() {
+  $('.server-status').removeClass('d-none');
   $('.server-status').html(getServerStatus());
 }
 
