@@ -1,10 +1,5 @@
 // Initializing contract
 async function doInitContract() {
-  // Getting config from cookies that are provided by the NEAR Studio.
-  const config = await nearlib.dev.getConfig();
-  window.config = config;
-  console.log("nearConfig", config);
-  
   // Initializing Wallet based Account. It can work with NEAR DevNet wallet that
   // is hosted at https://wallet.nearprotocol.com
   // The wallet is managing the accounts and keys for the user using localStorage.
@@ -14,7 +9,7 @@ async function doInitContract() {
   // Then wallet uses keys from the local storage under wallet.nearprotocol.com
   // and signs the transaction and returns it back to our app.
   const walletBaseUrl = 'https://wallet.nearprotocol.com';
-  window.walletAccount = new nearlib.WalletAccount(config.contractName, walletBaseUrl);
+  window.walletAccount = new nearlib.WalletAccount(nearConfig.contractName, walletBaseUrl);
 
   // Getting the Account ID. If unauthorized yet, it's just empty string.
   window.accountId = window.walletAccount.getAccountId();
@@ -23,12 +18,12 @@ async function doInitContract() {
   near = new nearlib.Near(new nearlib.NearClient(
       window.walletAccount,
       // We need to provide a connection to the blockchain node which we're going to use
-      new nearlib.LocalNodeConnection(config.nodeUrl),
+      new nearlib.LocalNodeConnection(nearConfig.nodeUrl),
   ));
   
   // Initializing our contract APIs by contract name and configuration.
-  window.contract = await near.loadContract(config.contractName, {
     // NOTE: This configuration only needed while NEAR is still in development
+  window.contract = await near.loadContract(nearConfig.contractName, {
     // View methods are read only. They don't modify the state, but usually return some value. 
     viewMethods: ["getCurrentGame", "getGame", "getRecentGames"],
     // Change methods can modify the state. But you don't receive the returned value when called.
@@ -59,7 +54,7 @@ function signedOutFlow() {
   $('#sign-in-button').click(() => {
     window.walletAccount.requestSignIn(
       // The contract name that would be authorized to be called by the user's account.
-      window.config.contractName,
+      window.nearConfig.contractName,
       // This is the app name. It can be anything.
       'NEAR Chess',
       // We can also provide URLs to redirect on success and failure.
