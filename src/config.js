@@ -7,15 +7,34 @@
             case 'production':
             case 'development':
                 return {
-                    nodeUrl: 'https://studio.nearprotocol.com/devnet',
-                    helperUrl: 'https://studio.nearprotocol.com/contract-api',
+                    networkId: 'default',
+                    nodeUrl: 'https://rpc.nearprotocol.com',
                     contractName: CONTRACT_NAME,
+                    walletUrl: 'https://wallet.nearprotocol.com',
                 };
             case 'local':
+                return {
+                    networkId: 'local',
+                    nodeUrl: 'http://localhost:3030',
+                    keyPath: '~/.near/validator_key.json',
+                    contractName: CONTRACT_NAME,
+                    initialBalance: 100000,
+                };
             case 'test':
                 return {
-                    nodeUrl: 'http://localhost:8080',
-                    contractName: CONTRACT_NAME
+                    networkId: 'local',
+                    nodeUrl: 'http://localhost:3030',
+                    contractName: CONTRACT_NAME,
+                    masterAccount: 'test.near',
+                    initialBalance: 100000,
+                };
+            case 'test-remote':
+            case 'ci':
+                return {
+                    networkId: 'shared-test',
+                    nodeUrl: 'http://34.94.13.241:3030',
+                    contractName: CONTRACT_NAME,
+                    masterAccount: 'test.near',
                 };
             default:
                 throw Error(`Unconfigured environment '${env}'. Can be configured in src/config.js.`);

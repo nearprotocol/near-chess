@@ -1,9 +1,7 @@
-import "allocator/arena";
 export { memory };
 
 import { context, storage, near } from "./near";
-import { Game } from "./model.near";
-import {GameWithId} from "./model";
+import { Game, GameWithId } from "./model.near";
 
 // --- contract code goes below
 
