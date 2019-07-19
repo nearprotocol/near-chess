@@ -1,25 +1,9 @@
-// Initializing contract
 async function doInitContract() {
-  // Initializing Wallet based Account. It can work with NEAR DevNet wallet that
-  // is hosted at https://wallet.nearprotocol.com
-  // The wallet is managing the accounts and keys for the user using localStorage.
-  // It never exposes the keys to the application, so in order to send transactions
-  // on behalf of the user we need to talk to the wallet page.
-  // To talk to the wallet we use the in-browser iframe messaging system and auth tokens.
-  // Then wallet uses keys from the local storage under wallet.nearprotocol.com
-  // and signs the transaction and returns it back to our app.
-  const walletBaseUrl = 'https://wallet.nearprotocol.com';
-  window.walletAccount = new nearlib.WalletAccount(nearConfig.contractName, walletBaseUrl);
+  window.near = await nearlib.connect(Object.assign(nearConfig, { deps: { keyStore: new nearlib.keyStores.BrowserLocalStorageKeyStore() }}));
+  window.walletAccount = new nearlib.WalletAccount(window.near);
 
   // Getting the Account ID. If unauthorized yet, it's just empty string.
   window.accountId = window.walletAccount.getAccountId();
-  
-  // Initializing near and near client from the nearlib.
-  near = new nearlib.Near(new nearlib.NearClient(
-      window.walletAccount,
-      // We need to provide a connection to the blockchain node which we're going to use
-      new nearlib.LocalNodeConnection(nearConfig.nodeUrl),
-  ));
   
   // Initializing our contract APIs by contract name and configuration.
     // NOTE: This configuration only needed while NEAR is still in development
