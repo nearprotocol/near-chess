@@ -1,12 +1,12 @@
-export { memory };
+// @nearfile
 
-import { context, storage, near } from "./near";
-import { Game, GameWithId } from "./model.near";
+import { context, storage, logging } from "near-runtime-ts";
+import { Game, GameWithId } from "./model";
 
 // --- contract code goes below
 
 export function getRecentGames(): Array<GameWithId> {
-  let lastId = storage.getU64('lastId');
+  let lastId = storage.getSome<u64>('lastId');
   let games = new Array<GameWithId>();
   for (let id = lastId; id + 10 > lastId && id > 0; --id) {
     let game = new GameWithId();
@@ -32,36 +32,36 @@ export function giveUpCurrentGame(): void {
 
 export function createOrJoinGame(): void {
   giveUpCurrentGame();
-  let lastId = storage.getU64('lastId');
+  let lastId = storage.getSome<u64>('lastId');
   let gameKey: string;
-  let game: Game;
+  let game: Game | null = null;
   if (lastId > 0) {
     gameKey = getGameKey(lastId);
     game = Game.decode(storage.getBytes(gameKey));
-    if (game.player2) {
+    if (game!.player2) {
       game = null;
     } else {
-      if (game.player1 == context.sender) {
+      if (game!.player1 == context.sender) {
         return;
       }
-      game.player2 = context.sender;
+      game!.player2 = context.sender;
     }
   }
   if (game == null) {
     game = new Game();
     lastId++;
-    storage.setU64('lastId', lastId);
+    storage.set('lastId', lastId);
     gameKey = getGameKey(lastId);
     game.player1 = context.sender;
   }
   storage.setBytes(gameKey, game.encode());
   // TODO: Make it possible to return result from method to avoid this
-  near.log("sender: " + context.sender);
-  storage.setU64("gameId:" + context.sender, lastId);
+  logging.log("sender: " + context.sender);
+  storage.set("gameId:" + context.sender, lastId);
 }
 
 export function getCurrentGame(player: string): u64 {
-  return storage.getU64("gameId:" + player);
+  return storage.getSome<u64>("gameId:" + player);
 }
 
 export function getGame(gameId: u64): Game {
@@ -78,9 +78,9 @@ export function makeMove(gameId: u64, fen: string): void {
     nextTurn != turn && (
       (context.sender == game.player1 && turn == 'w') ||
       (context.sender == game.player2 && turn == 'b'));
-  near.log("turn " + turn);
-  near.log("nextTurn " + nextTurn);
-  near.log("sender " + context.sender);
+  logging.log("turn " + turn);
+  logging.log("nextTurn " + nextTurn);
+  logging.log("sender " + context.sender);
   
   assert(validTurn, 'Wrong side to make move');
   // TODO: Validate chess rules
