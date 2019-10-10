@@ -50,14 +50,14 @@ export function createOrJoinGame(): void {
   if (game == null) {
     game = new Game();
     lastId++;
-    storage.set('lastId', lastId);
+    storage.set<u64>('lastId', lastId);
     gameKey = getGameKey(lastId);
     game.player1 = context.sender;
   }
   storage.setBytes(gameKey, game.encode());
   // TODO: Make it possible to return result from method to avoid this
   logging.log("sender: " + context.sender);
-  storage.set("gameId:" + context.sender, lastId);
+  storage.set<u64>("gameId:" + context.sender, lastId);
 }
 
 export function getCurrentGame(player: string): u64 {
