@@ -32,7 +32,7 @@ export function giveUpCurrentGame(): void {
 
 export function createOrJoinGame(): void {
   giveUpCurrentGame();
-  let lastId = storage.getSome<u64>('lastId');
+  let lastId = storage.getPrimitive<u64>('lastId', 0);
   let gameKey: string;
   let game: Game | null = null;
   if (lastId > 0) {
@@ -61,7 +61,7 @@ export function createOrJoinGame(): void {
 }
 
 export function getCurrentGame(player: string): u64 {
-  return storage.getSome<u64>("gameId:" + player);
+  return storage.getPrimitive<u64>("gameId:" + player, 0);
 }
 
 export function getGame(gameId: u64): Game {
