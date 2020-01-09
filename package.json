@@ -18,7 +18,7 @@
     "jest": "^22.4.4",
     "jest-environment-node": "^24.5.0",
     "near-runtime-ts": "^0.5.1",
-    "near-shell": "^0.11.3"
+    "near-shell": "^0.19.0"
   },
   "wasmStudio": {
     "name": "NEAR Chess",
@@ -26,6 +26,8 @@
     "icon": "typescript-lang-file-icon"
   },
   "dependencies": {
+    "near-bindgen-as": "^1.2.0",
+    "nearlib": "^0.19.1",
     "serve": "^11.0.1"
   }
 }
