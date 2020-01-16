@@ -5919,10 +5919,10 @@ near-runtime-ts@^0.5.1:
     assemblyscript-json "0.2.0"
     bignum "github:MaxGraey/bignum.wasm"
 
-near-shell@0.20.1-preview:
-  version "0.20.1-preview"
-  resolved "https://registry.yarnpkg.com/near-shell/-/near-shell-0.20.1-preview.tgz#1bb4ce8ca55e40bdd73a467a57f2bb541f63d19e"
-  integrity sha512-uX+oXLx9fmw22Z0NO8yAr8CRWFEqXxhE8eDAJRMalV1XNJZ4VGJdUI/9hYy4r/M1MevIZs/mOqR9iGnpy+jKlg==
+near-shell@^0.20.1:
+  version "0.20.1"
+  resolved "https://registry.yarnpkg.com/near-shell/-/near-shell-0.20.1.tgz#e4bfd13c7101721c372b269be8e51a8b49e1e241"
+  integrity sha512-xzGkkT5Gyjj+SI9+Xeqq8xUuY+leghqeMe1phWI45iW+8MWcp+MCtgilgEgmjp6hLiovPzMzmAAUsocACUB5fQ==
   dependencies:
     assemblyscript "^0.8.1"
     bn "^1.0.5"
