@@ -1,3 +1,10 @@
+import "regenerator-runtime/runtime";
+
+import * as nearlib from "nearlib"
+import getConfig from "./config"
+
+let nearConfig = getConfig(process.env.NODE_ENV || "development")
+
 async function doInitContract() {
   window.near = await nearlib.connect(Object.assign(nearConfig, { deps: { keyStore: new nearlib.keyStores.BrowserLocalStorageKeyStore() }}));
   window.walletAccount = new nearlib.WalletAccount(window.near);
@@ -38,7 +45,7 @@ function signedOutFlow() {
   $('#sign-in-button').click(() => {
     window.walletAccount.requestSignIn(
       // The contract name that would be authorized to be called by the user's account.
-      window.nearConfig.contractName,
+      nearConfig.contractName,
       // This is the app name. It can be anything.
       'NEAR Chess',
       // We can also provide URLs to redirect on success and failure.
