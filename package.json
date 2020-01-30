@@ -3,22 +3,24 @@
   "description": "",
   "version": "0.0.1",
   "scripts": {
-    "build": "mkdir -p out/ && gulp",
-    "dev:deploy:contract": "near dev-deploy ./out/main.wasm",
+    "build": "npm run build:contract && npm run build:web",
+    "build:contract": "mkdir -p out/ && gulp && npm run build:web",
+    "build:web": "parcel build src/index.html --public-url ./",
+    "dev:deploy:contract": "near dev-deploy",
     "deploy:contract": "near deploy",
-    "deploy:pages": "gh-pages -d src",
+    "deploy:pages": "gh-pages -d dist/",
     "deploy": "npm run build && npm run deploy:contract && npm run deploy:pages",
-    "prestart": "npm run build && npm run dev:deploy:contract",
+    "prestart": "npm run build:contract && npm run dev:deploy:contract",
     "start": "CONTRACT_NAME=$(cat neardev/dev-account) parcel src/index.html",
     "dev": "nodemon --watch assembly -e ts --exec 'npm run start'",
-    "test": "npm run build && jest test --env=near-shell/test_environment"
+    "test": "npm run build:contract && jest test --env=near-shell/test_environment"
   },
   "devDependencies": {
-    "bignum": "github:MaxGraey/bignum.wasm",
     "gh-pages": "^2.0.1",
     "gulp": "^4.0.2",
     "jest": "^22.4.4",
     "jest-environment-node": "^24.5.0",
+    "near-bindgen-as": "^1.2.0",
     "near-runtime-ts": "^0.5.1",
     "near-shell": "^0.20.1",
     "nodemon": "^2.0.2",
@@ -30,9 +32,7 @@
     "icon": "typescript-lang-file-icon"
   },
   "dependencies": {
-    "near-bindgen-as": "^1.2.0",
     "nearlib": "^0.20.0",
-    "regenerator-runtime": "^0.13.3",
-    "serve": "^11.0.1"
+    "regenerator-runtime": "^0.13.3"
   }
 }
