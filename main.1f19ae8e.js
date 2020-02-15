@@ -7758,7 +7758,7 @@ module.exports = {
   "511": "Network Authentication Required"
 }
 
-},{}],"../node_modules/punycode/punycode.js":[function(require,module,exports) {
+},{}],"../node_modules/node-libs-browser/node_modules/punycode/punycode.js":[function(require,module,exports) {
 var global = arguments[3];
 var define;
 /*! https://mths.be/punycode v1.4.1 by @mathias */
@@ -9227,7 +9227,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"punycode":"../node_modules/punycode/punycode.js","./util":"../node_modules/url/util.js","querystring":"../node_modules/querystring-es3/index.js"}],"../node_modules/stream-http/index.js":[function(require,module,exports) {
+},{"punycode":"../node_modules/node-libs-browser/node_modules/punycode/punycode.js","./util":"../node_modules/url/util.js","querystring":"../node_modules/querystring-es3/index.js"}],"../node_modules/stream-http/index.js":[function(require,module,exports) {
 var global = arguments[3];
 var ClientRequest = require('./lib/request')
 var response = require('./lib/response')
@@ -14613,14 +14613,27 @@ var global = arguments[3];
    * avoid the need to parse the same template twice.
    */
   function Writer () {
-    this.cache = {};
+    this.templateCache = {
+      _cache: {},
+      set: function set (key, value) {
+        this._cache[key] = value;
+      },
+      get: function get (key) {
+        return this._cache[key];
+      },
+      clear: function clear () {
+        this._cache = {};
+      }
+    };
   }
 
   /**
    * Clears all cached templates in this writer.
    */
   Writer.prototype.clearCache = function clearCache () {
-    this.cache = {};
+    if (typeof this.templateCache !== 'undefined') {
+      this.templateCache.clear();
+    }
   };
 
   /**
@@ -14629,13 +14642,15 @@ var global = arguments[3];
    * that is generated from the parse.
    */
   Writer.prototype.parse = function parse (template, tags) {
-    var cache = this.cache;
+    var cache = this.templateCache;
     var cacheKey = template + ':' + (tags || mustache.tags).join(':');
-    var tokens = cache[cacheKey];
+    var isCacheEnabled = typeof cache !== 'undefined';
+    var tokens = isCacheEnabled ? cache.get(cacheKey) : undefined;
 
-    if (tokens == null)
-      tokens = cache[cacheKey] = parseTemplate(template, tags);
-
+    if (tokens == undefined) {
+      tokens = parseTemplate(template, tags);
+      isCacheEnabled && cache.set(cacheKey, tokens);
+    }
     return tokens;
   };
 
@@ -14778,16 +14793,29 @@ var global = arguments[3];
 
   var mustache = {
     name: 'mustache.js',
-    version: '3.2.1',
+    version: '4.0.0',
     tags: [ '{{', '}}' ],
     clearCache: undefined,
     escape: undefined,
     parse: undefined,
     render: undefined,
-    to_html: undefined,
     Scanner: undefined,
     Context: undefined,
-    Writer: undefined
+    Writer: undefined,
+    /**
+     * Allows a user to override the default caching strategy, by providing an
+     * object with set, get and clear methods. This can also be used to disable
+     * the cache by setting it to the literal `undefined`.
+     */
+    set templateCache (cache) {
+      defaultWriter.templateCache = cache;
+    },
+    /**
+     * Gets the default or overridden caching object from the default writer.
+     */
+    get templateCache () {
+      return defaultWriter.templateCache;
+    }
   };
 
   // All high-level mustache.* functions use this writer.
@@ -14823,20 +14851,6 @@ var global = arguments[3];
     }
 
     return defaultWriter.render(template, view, partials, tags);
-  };
-
-  // This is here for backwards compatibility with 0.4.x.,
-  /*eslint-disable */ // eslint wants camel cased function name
-  mustache.to_html = function to_html (template, view, partials, send) {
-    /*eslint-enable*/
-
-    var result = mustache.render(template, view, partials);
-
-    if (isFunction(send)) {
-      send(result);
-    } else {
-      return result;
-    }
   };
 
   // Export the escaping function so that the user may override it.
@@ -17890,12 +17904,11 @@ function unpackneg(r, p) {
 }
 
 function crypto_sign_open(m, sm, n, pk) {
-  var i, mlen;
+  var i;
   var t = new Uint8Array(32), h = new Uint8Array(64);
   var p = [gf(), gf(), gf(), gf()],
       q = [gf(), gf(), gf(), gf()];
 
-  mlen = -1;
   if (n < 64) return -1;
 
   if (unpackneg(q, pk)) return -1;
@@ -17917,8 +17930,7 @@ function crypto_sign_open(m, sm, n, pk) {
   }
 
   for (i = 0; i < n; i++) m[i] = sm[i + 64];
-  mlen = n;
-  return mlen;
+  return n;
 }
 
 var crypto_secretbox_KEYBYTES = 32,
@@ -17979,7 +17991,23 @@ nacl.lowlevel = {
   crypto_sign_PUBLICKEYBYTES: crypto_sign_PUBLICKEYBYTES,
   crypto_sign_SECRETKEYBYTES: crypto_sign_SECRETKEYBYTES,
   crypto_sign_SEEDBYTES: crypto_sign_SEEDBYTES,
-  crypto_hash_BYTES: crypto_hash_BYTES
+  crypto_hash_BYTES: crypto_hash_BYTES,
+
+  gf: gf,
+  D: D,
+  L: L,
+  pack25519: pack25519,
+  unpack25519: unpack25519,
+  M: M,
+  A: A,
+  S: S,
+  Z: Z,
+  pow2523: pow2523,
+  add: add,
+  set25519: set25519,
+  modL: modL,
+  scalarmult: scalarmult,
+  scalarbase: scalarbase,
 };
 
 /* High-level API */
@@ -20287,16 +20315,7 @@ class Account {
         return this._ready || (this._ready = Promise.resolve(this.fetchState()));
     }
     async fetchState() {
-        this._accessKey = null;
         this._state = await this.connection.provider.query(`account/${this.accountId}`, '');
-        const publicKey = await this.connection.signer.getPublicKey(this.accountId, this.connection.networkId);
-        if (!publicKey) {
-            return;
-        }
-        this._accessKey = await this.connection.provider.query(`access_key/${this.accountId}/${publicKey.toString()}`, '');
-        if (!this._accessKey) {
-            throw new Error(`Failed to fetch access key for '${this.accountId}' with public key ${publicKey.toString()}`);
-        }
     }
     async state() {
         await this.ready;
@@ -20324,11 +20343,13 @@ class Account {
     }
     async signAndSendTransaction(receiverId, actions) {
         await this.ready;
-        if (!this._accessKey) {
-            throw new providers_1.TypedError(`Can not sign transactions, no matching key pair found in Signer.`, 'KeyNotFound');
+        // TODO: Find matching access key based on transaction
+        const accessKey = await this.findAccessKey();
+        if (!accessKey) {
+            throw new providers_1.TypedError(`Can not sign transactions for account ${this.accountId}, no matching key pair found in Signer.`, 'KeyNotFound');
         }
         const status = await this.connection.provider.status();
-        const [txHash, signedTx] = await transaction_1.signTransaction(receiverId, ++this._accessKey.nonce, actions, serialize_1.base_decode(status.sync_info.latest_block_hash), this.connection.signer, this.accountId, this.connection.networkId);
+        const [txHash, signedTx] = await transaction_1.signTransaction(receiverId, ++accessKey.nonce, actions, serialize_1.base_decode(status.sync_info.latest_block_hash), this.connection.signer, this.accountId, this.connection.networkId);
         let result;
         try {
             result = await this.connection.provider.sendTransaction(signedTx);
@@ -20355,6 +20376,14 @@ class Account {
         // TODO: if Tx is Unknown or Started.
         // TODO: deal with timeout on node side.
         return result;
+    }
+    async findAccessKey() {
+        const publicKey = await this.connection.signer.getPublicKey(this.accountId, this.connection.networkId);
+        if (!publicKey) {
+            return null;
+        }
+        // TODO: Cache keys and handle nonce errors automatically
+        return await this.connection.provider.query(`access_key/${this.accountId}/${publicKey.toString()}`, '');
     }
     async createAndDeployContract(contractId, publicKey, data, amount) {
         const accessKey = transaction_1.fullAccessKey();
@@ -20849,7 +20878,6 @@ exports.WalletAccount = wallet_account_1.WalletAccount;
 
 },{"./providers":"../node_modules/nearlib/lib/providers/index.js","./utils":"../node_modules/nearlib/lib/utils/index.js","./key_stores":"../node_modules/nearlib/lib/key_stores/index.js","./transaction":"../node_modules/nearlib/lib/transaction.js","./account":"../node_modules/nearlib/lib/account.js","./account_creator":"../node_modules/nearlib/lib/account_creator.js","./connection":"../node_modules/nearlib/lib/connection.js","./signer":"../node_modules/nearlib/lib/signer.js","./contract":"../node_modules/nearlib/lib/contract.js","./utils/key_pair":"../node_modules/nearlib/lib/utils/key_pair.js","./near":"../node_modules/nearlib/lib/near.js","./wallet-account":"../node_modules/nearlib/lib/wallet-account.js"}],"config.js":[function(require,module,exports) {
 var CONTRACT_NAME = "dev-1579207562230" || 'near-chess-devnet';
-var DEFAULT_ENV = 'development';
 
 function getConfig(env) {
   switch (env) {
@@ -20863,13 +20891,22 @@ function getConfig(env) {
         helperUrl: 'https://near-contract-helper.onrender.com'
       };
 
+    case 'staging':
+      return {
+        networkId: 'staging',
+        nodeUrl: 'https://staging-rpc.nearprotocol.com/',
+        contractName: CONTRACT_NAME,
+        walletUrl: 'https://near-wallet-staging.onrender.com',
+        helperUrl: 'https://near-contract-helper-staging.onrender.com'
+      };
+
     case 'local':
       return {
         networkId: 'local',
         nodeUrl: 'http://localhost:3030',
-        keyPath: '~/.near/validator_key.json',
-        contractName: CONTRACT_NAME,
-        initialBalance: 100000
+        keyPath: "".concat("/Users/vg", "/.near/validator_key.json"),
+        walletUrl: 'http://localhost:4000/wallet',
+        contractName: CONTRACT_NAME
       };
 
     case 'test':
@@ -20877,17 +20914,32 @@ function getConfig(env) {
         networkId: 'local',
         nodeUrl: 'http://localhost:3030',
         contractName: CONTRACT_NAME,
-        masterAccount: 'test.near',
-        initialBalance: 100000
+        masterAccount: 'test.near'
       };
 
     case 'test-remote':
     case 'ci':
       return {
         networkId: 'shared-test',
-        nodeUrl: 'http://34.94.13.241:3030',
+        nodeUrl: 'http://shared-test.nearprotocol.com:3030',
         contractName: CONTRACT_NAME,
         masterAccount: 'test.near'
+      };
+
+    case 'ci-staging':
+      return {
+        networkId: 'shared-test-staging',
+        nodeUrl: 'http://staging-shared-test.nearprotocol.com:3030',
+        contractName: CONTRACT_NAME,
+        masterAccount: 'test.near'
+      };
+
+    case 'tatooine':
+      return {
+        networkId: 'tatooine',
+        nodeUrl: 'https://rpc.tatooine.nearprotocol.com',
+        contractName: CONTRACT_NAME,
+        walletUrl: 'https://wallet.tatooine.nearprotocol.com'
       };
 
     default:
@@ -21363,7 +21415,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49153" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61792" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
