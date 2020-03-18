@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "build": "npm run build:contract && npm run build:web",
-    "build:contract": "mkdir -p out/ && gulp && npm run build:web",
+    "build:contract": "gulp && npm run build:web",
     "build:web": "parcel build src/index.html --public-url ./",
     "dev:deploy:contract": "near dev-deploy",
     "deploy:contract": "near deploy",
@@ -16,12 +16,12 @@
     "test": "npm run build:contract && jest test --env=near-shell/test_environment"
   },
   "devDependencies": {
+    "assemblyscript": "^0.9.4",
     "gh-pages": "^2.0.1",
     "gulp": "^4.0.2",
     "jest": "^22.4.4",
     "jest-environment-node": "^24.5.0",
-    "near-bindgen-as": "^1.2.0",
-    "near-runtime-ts": "^0.5.1",
+    "near-sdk-as": "^0.1.2",
     "near-shell": "^0.20.1",
     "nodemon": "^2.0.2",
     "parcel-bundler": "^1.12.4"

@@ -1,6 +1,6 @@
 // @nearfile
 
-import { context, storage, logging } from "near-runtime-ts";
+import { context, storage, logging } from "near-sdk-as";
 import { Game, GameWithId } from "./model";
 
 // --- contract code goes below
@@ -27,7 +27,7 @@ export function giveUpCurrentGame(): void {
     return;
   }
   game.outcome = "Player " + context.sender + " gave up";
-  storage.setBytes(getGameKey(gameId), game.encode());
+  storage.set(getGameKey(gameId), game);
 }
 
 export function createOrJoinGame(): void {
@@ -37,14 +37,14 @@ export function createOrJoinGame(): void {
   let game: Game | null = null;
   if (lastId > 0) {
     gameKey = getGameKey(lastId);
-    game = Game.decode(storage.getBytes(gameKey));
-    if (game!.player2) {
+    game = storage.getSome<Game>(gameKey);
+    if (game.player2) {
       game = null;
     } else {
-      if (game!.player1 == context.sender) {
+      if (game.player1 == context.sender) {
         return;
       }
-      game!.player2 = context.sender;
+      game.player2 = context.sender;
     }
   }
   if (game == null) {
@@ -54,7 +54,7 @@ export function createOrJoinGame(): void {
     gameKey = getGameKey(lastId);
     game.player1 = context.sender;
   }
-  storage.setBytes(gameKey, game.encode());
+  setGame(lastId, game);
   // TODO: Make it possible to return result from method to avoid this
   logging.log("sender: " + context.sender);
   storage.set<u64>("gameId:" + context.sender, lastId);
@@ -65,12 +65,15 @@ export function getCurrentGame(player: string): u64 {
 }
 
 export function getGame(gameId: u64): Game {
-  return Game.decode(storage.getBytes(getGameKey(gameId)));
+  return storage.getSome<Game>(getGameKey(gameId));
+}
+
+function setGame(gameId: u64, game: Game): void {
+  storage.set(getGameKey(gameId), game);
 }
 
 export function makeMove(gameId: u64, fen: string): void {
-  let gameKey = getGameKey(gameId);
-  let game = Game.decode(storage.getBytes(gameKey));
+  let game = getGame(gameId);
   assert(game.outcome == null, "Game over");
   let turn = getCurrentTurn(game.fen);
   let nextTurn = getCurrentTurn(fen);
@@ -85,7 +88,7 @@ export function makeMove(gameId: u64, fen: string): void {
   assert(validTurn, 'Wrong side to make move');
   // TODO: Validate chess rules
   game.fen = fen;
-  storage.setBytes(gameKey, game.encode());
+  setGame(gameId, game);
 }
 
 function getGameKey(gameId: u64): string {
