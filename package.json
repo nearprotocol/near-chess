@@ -13,7 +13,7 @@
     "prestart": "npm run build:contract && npm run dev:deploy:contract",
     "start": "CONTRACT_NAME=$(cat neardev/dev-account) parcel src/index.html",
     "dev": "nodemon --watch assembly -e ts --exec 'npm run start'",
-    "test": "npm run build:contract && npm run dev:deploy:contract && jest test"
+    "test": "npm run build:contract && jest test"
   },
   "devDependencies": {
     "assemblyscript": "^0.9.4",
