@@ -1,10 +1,10 @@
 {
   "name": "near-chess",
-  "description": "",
+  "description": "Shows example of how to implement on-chain chess game and deploy to GitHub pages",
   "version": "0.0.1",
   "scripts": {
     "build": "npm run build:contract && npm run build:web",
-    "build:contract": "gulp && npm run build:web",
+    "build:contract": "node asconfig.js",
     "build:web": "parcel build src/index.html --public-url ./",
     "dev:deploy:contract": "near dev-deploy",
     "deploy:contract": "near deploy",
@@ -13,7 +13,8 @@
     "prestart": "npm run build:contract && npm run dev:deploy:contract",
     "start": "CONTRACT_NAME=$(cat neardev/dev-account) parcel src/index.html",
     "dev": "nodemon --watch assembly -e ts --exec 'npm run start'",
-    "test": "npm run build:contract && jest test"
+    "test": "asp && npm run build:contract && jest test",
+    "asp": "asp --verbose"
   },
   "devDependencies": {
     "assemblyscript": "^0.9.4",
@@ -25,11 +26,6 @@
     "near-shell": "^0.20.1",
     "nodemon": "^2.0.2",
     "parcel-bundler": "^1.12.4"
-  },
-  "wasmStudio": {
-    "name": "NEAR Chess",
-    "description": "Shows example of how to implement on-chain chess game and deploy to GitHub pages",
-    "icon": "typescript-lang-file-icon"
   },
   "dependencies": {
     "nearlib": "^0.20.0",
