@@ -27,7 +27,7 @@ export function giveUpCurrentGame(): void {
     return;
   }
   game.outcome = "Player " + context.sender + " gave up";
-  storage.set(getGameKey(gameId), game);
+  setGame(gameId, game);
 }
 
 export function createOrJoinGame(): void {
@@ -36,8 +36,7 @@ export function createOrJoinGame(): void {
   let gameKey: string;
   let game: Game | null = null;
   if (lastId > 0) {
-    gameKey = getGameKey(lastId);
-    game = storage.getSome<Game>(gameKey);
+    game = getGame(lastId);
     if (game.player2) {
       game = null;
     } else {
