@@ -1,9 +1,24 @@
 language: node_js
 node_js:
   - 12
-env:
+
+- env:
   - NODE_ENV=ci
   - NODE_ENV=ci-staging
+
 cache: yarn
-script:
-  - yarn test
+
+jobs:
+  include:
+    - name: yarn
+      script:
+      - yarn build
+      - yarn test
+
+    - name: fossa
+      before_script:
+        - "curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/fc60c6631a5d372d5a45fea35e31665b338f260d/install.sh | sudo bash"
+      script:
+        - fossa init
+        - fossa analyze --server-scan
+        - fossa test
